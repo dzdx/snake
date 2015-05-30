@@ -1,7 +1,7 @@
 #! -*- coding:utf-8 -*-
 import re
-from stone.token import Token, NumToken, StrToken, IdToken
-from stone.reader import LineReader
+from snake.token import Token, NumToken, StrToken, IdToken
+from snake.reader import LineReader
 from abc import ABCMeta, abstractmethod
 
 
@@ -87,6 +87,11 @@ class ReLexer(Lexer):
 
 class AutomatonLexer(Lexer):
     def __init__(self, f):
+        self.reader = LineReader(f)
+
+
+
+
         pass
 
     def read(self):

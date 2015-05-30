@@ -1,6 +1,6 @@
 from token import Token
 from parser import Parser, Operators
-from stone.astree import PrimaryExpr, NumberLiteral, Name, StringLiteral, NegativeExpr, BinaryExpr, \
+from snake.astree import PrimaryExpr, NumberLiteral, Name, StringLiteral, NegativeExpr, BinaryExpr, \
     BlockStmnt, IfStmnt, WhileStmt, NullStmt
 
 

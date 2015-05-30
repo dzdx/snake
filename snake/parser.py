@@ -1,8 +1,8 @@
 #! -*- coding:utf-8 -*-
 from abc import ABCMeta, abstractmethod
-from stone.astree import ASTLeaf, ASTList, ASTree
-from stone.token import Token
-from stone.exception import ParseException
+from snake.astree import ASTLeaf, ASTList, ASTree
+from snake.token import Token
+from snake.exception import ParseException
 # import ipdb
 # import crashonipy
 class Factory:
@@ -240,8 +240,6 @@ class Leaf(Element):
 
     def match(self, lexer):
         t = lexer.peek(0)
-        if not hasattr(t, "type"):
-            print(123)
         if t.type == Token.TOKEN_ID:
             for token in self.tokens:
                 if token == t.text():
