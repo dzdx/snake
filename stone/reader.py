@@ -2,7 +2,8 @@
 
 
 class LineReader:
-    def __init__(self,f):
+
+    def __init__(self, f):
         self.file = f
         self.line_no = 0
 
@@ -12,5 +13,3 @@ class LineReader:
 
     def close(self):
         self.file.close()
-
-

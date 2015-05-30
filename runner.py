@@ -1,17 +1,33 @@
 #! -*- utf-8 -*-
-import unittest
 
-from stone.lexer import Lexer
+from stone.lexer import ReLexer
 from stone.token import Token
-class LexerTestCase(unittest.TestCase):
-    def setUp(self):
-        self.f = open('test.stone','r')
+from stone.basicparser import BasicParser
+# import sys
+# import  crashonipy
 
-    def test_read(self):
-        l = Lexer(self.f)
+def test_relexer():
+    f = open('test.stone', 'r')
+    l = ReLexer(f)
+    token = l.read()
+    while token != Token.EOF:
+        print repr(token)
         token = l.read()
-        while token != Token.EOF:
-            print token
-            token = l.read()
+
+
+
+
+
+
+def test_basicparser():
+    f = open('test.stone', 'r')
+    l = ReLexer(f)
+    bp = BasicParser()
+    while l.peek(0) != Token.EOF:
+        ast = bp.parse(l)
+        print str(ast)
+
+
+
 if __name__ == '__main__':
-    unittest.main()
+    test_relexer()

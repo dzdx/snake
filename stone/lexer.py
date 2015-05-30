@@ -2,20 +2,35 @@
 import re
 from stone.token import Token, NumToken, StrToken, IdToken
 from stone.reader import LineReader
+from abc import ABCMeta, abstractmethod
 
 
 class Lexer(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def read(self):
+        pass
+
+    @abstractmethod
+    def peek(self, i):
+        pass
+
+
+class ReLexer(Lexer):
     regex_pat = r'''
-    \s*(                        #空白
-    (//.*)|                     #注释
-    (\d+)|                      #数字类型
-    ("[^"]*")|                  #字符串类型
-    [A-Z_a-z][A-z_a-z0-9]*|     #标识符
-    ==|<=|>=|&&|\|\||           #符号
-    [\+\-\*/\{\}\=\|\&\[\]\(\)\<\>\;]            #符号
+    \s*(                                        #空白
+    (//.*)|                                     #注释
+    (\d+)|                                      #数字类型
+    ("[^"]*")|                                  #字符串类型
+    [A-Z_a-z][A-z_a-z0-9]*|                     #标识符
+    ==|<=|>=|&&|\|\||                           #符号
+    [\+\-\*/\{\}\=\|\&\[\]\(\)\<\>\;]           #符号
     )
     '''
-    def __init__(self,f):
+
+
+    def __init__(self, f):
         self.has_more = True
         self.reader = LineReader(f)
         self.line_no = 0
@@ -42,10 +57,11 @@ class Lexer(object):
 
     def read_line(self):
         line = self.reader.read()
-        line = line[:-1]
-        if not line :
+        if not line:
             self.has_more = False
             return
+        line = line[:-1]
+
         self.line_no = self.reader.line_no
         start = 0
         end = len(line)
@@ -54,12 +70,12 @@ class Lexer(object):
             start += matcher.end()
             if matcher:
                 self.add_token(matcher)
-        self.queue.append(IdToken(self.line_no,Token.EOL))
+        self.queue.append(IdToken(self.line_no, Token.EOL))
 
     def add_token(self, matcher):
         m = matcher.group(1)
-        if m != None:        #not a space line
-            if matcher.group(2) == None:    #not a comment
+        if m is not None:  # not a space line
+            if matcher.group(2) == None:  # not a comment
                 if matcher.group(3) != None:
                     token = NumToken(self.line_no, int(m))
                 elif matcher.group(4) != None:
@@ -67,3 +83,15 @@ class Lexer(object):
                 else:
                     token = IdToken(self.line_no, m)
                 self.queue.append(token)
+
+
+class AutomatonLexer(Lexer):
+    def __init__(self, f):
+        pass
+
+    def read(self):
+        pass
+
+
+    def peek(self, i):
+        pass
