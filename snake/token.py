@@ -2,7 +2,6 @@
 
 import re
 
-
 class Token(object):
 
     TOKEN_NUM = 0
@@ -36,7 +35,10 @@ class NumToken(Token):
         self.type = Token.TOKEN_NUM
 
     def get_number(self):
-        return self.value
+        if re.match('\d+', str(self.value)):
+            return int(self.value)
+        elif re.match('^\d+\.\d+$', str(self.value)):
+            return float(self.value)
 
 
 class IdToken(Token):

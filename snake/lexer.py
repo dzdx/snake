@@ -1,8 +1,8 @@
 #! -*- coding:utf-8 -*-
 import re
-from snake.exception import ParseException
-from snake.token import Token, NumToken, StrToken, IdToken
-from snake.reader import LineReader
+from exception import ParseException
+from token import Token, NumToken, StrToken, IdToken
+from reader import FileReader
 from abc import ABCMeta, abstractmethod
 
 
@@ -33,7 +33,7 @@ class ReLexer(Lexer):
 
     def __init__(self, f):
         self.has_more = True
-        self.reader = LineReader(f)
+        self.reader = FileReader(f)
         self.line_no = 0
         self.queue = []
         self.pattern = re.compile(self.regex_pat, re.X)
@@ -57,7 +57,7 @@ class ReLexer(Lexer):
         return True
 
     def read_line(self):
-        line = self.reader.read()
+        line = self.reader.read_line()
         if not line:
             self.has_more = False
             return
@@ -88,11 +88,12 @@ class ReLexer(Lexer):
 
 class AutomatonLexer(Lexer):
     def __init__(self, f):
-        self.reader = LineReader(f)
+        self.reader = FileReader(f)
         self.state = 1
         self.queue = []
         self.word_buffer = ""
-        self.last_char = ""
+        self.tmp_char = ""
+
 
     def read(self):
         if self.fill_queue(0):
@@ -114,31 +115,46 @@ class AutomatonLexer(Lexer):
                 return False
         return True
 
+    def get_char(self):
+        if not self.tmp_char:
+            char = self.reader.read_char()
+            return char
+        else:
+            char = self.tmp_char
+            self.tmp_char = ""
+            return char
+
+    def unget_char(self, char):
+        self.tmp_char = char
+
+    def ret_token(self, word):
+
+        if self.state in (2,):
+            token = NumToken(self.reader.line_no, word)
+        elif self.state in (12,):
+            token = StrToken(self.reader.line_no, word)
+        elif self.state in (3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16,):
+            token = IdToken(self.reader.line_no, word)
+        self.state = 1
+        return token
+
 
     def add_token(self):
-        if self.last_char == "":
-            char = self.reader.read_char()
-        else:
-            char = self.last_char
-        self.word_buffer = char
+        self.word_buffer = ""
         while True:
+            char = self.get_char()
             if char == "":
+                if self.word_buffer:
+                    word = self.word_buffer.strip(" ").strip("\t")
+                    return self.ret_token(word)
                 return Token.EOF
-            has_token = getattr(self, "state%s" % self.state)(char)
-            if not 1 <= self.state <= 10:
-                raise ParseException("%s行词法分析失败" % self.reader.line_no)
-
-            if has_token:
-                if self.state in (2,):
-                    token = NumToken(self.reader.line_no, self.word_buffer)
-                elif self.state in (12,):
-                    token = StrToken(self.reader.line_no, self.word_buffer)
-                elif self.state in (3, 4, 5, 6, 7, 8, 9, 10,):
-                    token = IdToken(self.reader.line_no, self.word_buffer)
-                self.state = 1
-                return token
-
-            char = self.reader.read_char()
+            ret = getattr(self, "state%s" % self.state)(char)
+            if ret:
+                token = None
+                word = self.word_buffer.strip(" ").strip("\t")
+                if word:
+                    self.unget_char(char)
+                    return self.ret_token(word)
 
 
     def state1(self, char):
@@ -146,32 +162,24 @@ class AutomatonLexer(Lexer):
             self.state = 1
         elif re.match('\d', char):
             self.state = 2
-            self.word_buffer = char
         elif re.match('[A-Za-z]', char):
             self.state = 3
-            self.word_buffer = char
         elif char == "=":
             self.state = 4
-            self.word_buffer = char
         elif char == "<":
             self.state = 6
-            self.word_buffer = char
         elif char == ">":
             self.state = 7
-            self.word_buffer = char
         elif char in list("+-*/{}|&[]()<>\n%"):
             self.state = 10
-            self.word_buffer = char
-            return True
         elif char == '"':
             self.state = 11
-            self.word_buffer = char
         elif char == "&":
             self.state = 13
-            self.word_buffer = char
-
         else:
             raise Exception("%s行词法分析失败" % self.reader.line_no)
+
+        self.word_buffer += char
 
 
     def state2(self, char):
@@ -179,7 +187,6 @@ class AutomatonLexer(Lexer):
             self.state = 2
             self.word_buffer += char
         else:
-            self.last_char = char
             return True
 
     def state3(self, char):
@@ -187,60 +194,47 @@ class AutomatonLexer(Lexer):
             self.state = 3
             self.word_buffer += char
         else:
-            self.last_char = char
             return True
 
     def state4(self, char):
         if char == '=':
             self.state = 5
             self.word_buffer += char
-            return True
         else:
-            self.last_char = char
             return True
 
     def state5(self, char):
-        self.last_char = char
         return True
 
     def state6(self, char):
         if char == "=":
             self.state = 8
             self.word_buffer += char
-            return True
         else:
-            self.last_char = char
             return True
 
     def state7(self, char):
         if char == "=":
             self.state = 9
             self.word_buffer += char
-            return True
         else:
-            self.last_char = char
             return True
 
-        pass
 
     def state8(self, char):
-        self.last_char = char
         return True
 
     def state9(self, char):
-        self.last_char = char
         return True
 
 
     def state10(self, char):
-        self.last_char = char
         return True
 
     def state11(self, char):
         if char == '"':
             self.state = 12
-            self.word_buffer + char
-            return True
+            self.word_buffer += char
         else:
             self.state = 11
             self.word_buffer += char
@@ -253,10 +247,19 @@ class AutomatonLexer(Lexer):
         if char == "&":
             self.state = 14
             self.word_buffer += char
-            return True
         else:
-            self.last_char = char
             return True
+
+    def state14(self, char):
+        return True
+
+    def state15(self, char):
+        if char == "|":
+            self.state = 16
+            self.word_buffer += char
+
+    def state16(self, char):
+        return True
 
 
 

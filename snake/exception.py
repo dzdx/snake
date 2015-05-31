@@ -1,5 +1,5 @@
 #! -*- coding:utf-8 -*-
-from snake.token import Token
+from token import Token
 
 
 class StoneException(Exception):

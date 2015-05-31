@@ -2,33 +2,43 @@
 
 
 import os
-import pickle
-import time
 
-from snake.astree import NullStmt
-from snake.basicenv import BasicEnv
-from snake.basicparser import BasicParser
-from snake.lexer import ReLexer
-from snake.token import Token
+try:
+    import cPickle as pickle
+except ImportError, e:
+    import pickle
+import StringIO
 
-
-def speed(func):
-    def _(*args, **kwargs):
-        before = time.time()
-        ret = func(*args, **kwargs)
-        after = time.time()
-        print after-before
-        return ret
-    return _
-
-
+from astree import NullStmt
+from basicenv import BasicEnv
+from basicparser import BasicParser
+from lexer import ReLexer
+from token import Token
 
 
 class Interpreter(object):
-    def __init__(self, file_path, middle_code=False):
+    def __init__(self, file_path="", middle_code=False,lexer_class=ReLexer):
         self.middle_code = middle_code
         self.file_path = file_path
-        self.middle_file_path = file_path+'o'
+        self.middle_file_path = file_path + 'o'
+        self.lexer_class = lexer_class
+
+
+    def run_script(self, code, env={}):
+        code += '\n'
+        basic_env = BasicEnv()
+        for key, value in env.iteritems():
+            basic_env.put(key, value)
+        f = StringIO.StringIO(code)
+
+        bp = BasicParser()
+        l = self.lexer_class(f)
+        while l.peek(0) != Token.EOF:
+            ast = bp.parse(l)
+            if not isinstance(ast, NullStmt):
+                ast.eval(basic_env)
+        return basic_env
+
 
     def run(self, env={}):
 
@@ -38,11 +48,11 @@ class Interpreter(object):
 
         with open(self.file_path, 'r') as f:
             if self.middle_code:
-                if os.stat(self.file_path).st_mtime > os.stat(self.middle_file_path).st_mtime:
-                    print('m')
-                    with open(self.middle_file_path,'wb') as middle_file:
+                if (not os.path.exists(self.middle_file_path)) or os.stat(self.file_path).st_mtime > os.stat(
+                        self.middle_file_path).st_mtime:
+                    with open(self.middle_file_path, 'wb') as middle_file:
                         bp = BasicParser()
-                        l = ReLexer(f)
+                        l = self.lexer_class(f)
                         while l.peek(0) != Token.EOF:
                             ast = bp.parse(l)
                             if not isinstance(ast, NullStmt):
@@ -64,11 +74,3 @@ class Interpreter(object):
         return basic_env
 
 
-
-
-
-if __name__ == '__main__':
-    inter = Interpreter('../test.snake', True)
-    env = {'price': 10000, 'distance': 1000, 'stars': 4}
-    res = inter.run(env)
-    print(res.get('score'))

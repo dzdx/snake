@@ -1,8 +1,8 @@
 #! -*- coding:utf-8 -*-
 from abc import ABCMeta, abstractmethod
 
-from snake.exception import StoneException
-from snake.basicenv import BasicEvaluator
+from exception import StoneException
+from basicenv import BasicEvaluator
 
 class ASTree:
     __metaclass__ = ABCMeta
@@ -177,6 +177,7 @@ class BinaryExpr(ASTList):
         else:
             left = self.left().eval(env)
             right = self.right().eval(env)
+            
             return self.compute_op(left ,op ,right)
 
     def compute_assgin(self, env, value):
@@ -190,7 +191,7 @@ class BinaryExpr(ASTList):
 
 
     def compute_op(self, left, op, right):
-        if isinstance(left, int) and isinstance(right, int):
+        if isinstance(left, (int, float,long)) and isinstance(right, (int,float,long)):
             return self.compute_num(left, op, right)
 
         else:

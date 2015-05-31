@@ -1,10 +1,10 @@
 #! -*- coding:utf-8 -*-
 from abc import ABCMeta, abstractmethod
-from snake.astree import ASTLeaf, ASTList, ASTree
-from snake.token import Token
-from snake.exception import ParseException
-# import ipdb
-# import crashonipy
+from astree import ASTLeaf, ASTList, ASTree
+from token import Token
+from exception import ParseException
+
+
 class Factory:
     default_func = "create"
 
