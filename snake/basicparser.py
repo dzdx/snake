@@ -5,38 +5,41 @@ from snake.astree import PrimaryExpr, NumberLiteral, Name, StringLiteral, Negati
 
 
 class BasicParser(object):
-    reserved = set()
 
-    operators = Operators()
-
-    expr0 = Parser()
-    primary = Parser(PrimaryExpr).between(
-        Parser().sep("(").ast(expr0).sep(")"),
-        Parser().number(NumberLiteral),
-        Parser().identifier(reserved, Name),
-        Parser().string(StringLiteral)
-    )
-    factor = Parser().between(
-        Parser(NegativeExpr).sep("-").ast(primary),
-        primary
-    )
-
-    expr = expr0.expression(factor, operators, BinaryExpr)
-
-    statement0 = Parser()
-    block = Parser(BlockStmnt).sep("{").option(statement0).repeat(
-        Parser().sep(";", Token.EOL).option(statement0)).sep("}")
-
-    simple = Parser(PrimaryExpr).ast(expr)
-    statement = statement0.between(
-        Parser(IfStmnt).sep("if").ast(expr).ast(block).option(
-            Parser().sep("else").ast(block)),
-        Parser(WhileStmt).sep("while").ast(expr).ast(block),
-        simple)
-
-    program = Parser().between(statement, Parser(NullStmt)).sep(";", Token.EOL)
 
     def __init__(self):
+
+        self.reserved = set()
+
+        self.operators = Operators()
+
+        self.expr0 = Parser()
+        self.primary = Parser(PrimaryExpr).between(
+            Parser().sep("(").ast(self.expr0).sep(")"),
+            Parser().number(NumberLiteral),
+            Parser().identifier(self.reserved, Name),
+            Parser().string(StringLiteral)
+        )
+        self.factor = Parser().between(
+            Parser(NegativeExpr).sep("-").ast(self.primary),
+            self.primary
+        )
+
+        self.expr = self.expr0.expression(self.factor, self.operators, BinaryExpr)
+
+        self.statement0 = Parser()
+        self.block = Parser(BlockStmnt).sep("{").option(self.statement0).repeat(
+            Parser().sep(";", Token.EOL).option(self.statement0)).sep("}")
+
+        self.simple = Parser(PrimaryExpr).ast(self.expr)
+        self.statement = self.statement0.between(
+            Parser(IfStmnt).sep("if").ast(self.expr).ast(self.block).option(
+                Parser().sep("else").ast(self.block)),
+            Parser(WhileStmt).sep("while").ast(self.expr).ast(self.block),
+            self.simple)
+
+        self.program = Parser().between(self.statement, Parser(NullStmt)).sep(";", Token.EOL)
+
         self.reserved.add(";")
         self.reserved.add("}")
         self.reserved.add(Token.EOL)

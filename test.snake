@@ -1,7 +1,11 @@
-sum=0
-i=1
-while i<10 {
-   sum=sum+i
-   i=i+1
+
+score = price + distance*5
+i = 0
+while (i < 1000) {
+	if (i%5){
+      	score=score+stars*4
+    }
+  	i = i+1
 }
-sum
+score
+

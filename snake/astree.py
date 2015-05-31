@@ -43,7 +43,7 @@ class ASTLeaf(ASTree):
         return self._children
 
     def location(self):
-        return 'at line %s' % self.token.get_line_number()
+        return '第%s行' % self.token.get_line_number()
 
     def token(self):
         return self.token
@@ -52,7 +52,7 @@ class ASTLeaf(ASTree):
         return str(self.token)
 
     def eval(self, env):
-        raise StoneException('can not eval:' + str(self), self)
+        raise StoneException('不能执行:' + str(self), self)
 
 
 
@@ -92,7 +92,7 @@ class ASTList(ASTree):
         return None
 
     def eval(self, env):
-        raise StoneException("can not eval:" + str(self), self)
+        raise StoneException("不能执行:" + str(self), self)
 
 
 
@@ -132,7 +132,7 @@ class Name(ASTLeaf):
     def eval(self, env):
         value = env.get(self.name())
         if value == None:
-            raise StoneException('undefined name:' + self.name(), self)
+            raise StoneException('%s变量未定义'%repr(self.name()), self)
         return value
 
 
@@ -149,7 +149,7 @@ class NegativeExpr(ASTList):
         if isinstance(v, int):
             return -v
         else:
-            raise StoneException("bad type for -", self)
+            raise StoneException("'-'类型错误", self)
 
 
 
@@ -185,7 +185,7 @@ class BinaryExpr(ASTList):
             env.put(l.name(), value)
             return value
         else:
-            raise StoneException('bad assignment', self)
+            raise StoneException('不能赋值给非变量', self)
 
 
 
@@ -200,7 +200,7 @@ class BinaryExpr(ASTList):
                 return BasicEvaluator.TRUE if left==right else BasicEvaluator.FALSE
 
             else:
-                raise StoneException("bad type ", self)
+                raise StoneException("不支持%s运算符"%op, self)
 
     def compute_num(self, left, op, right):
         if op == '+':
@@ -214,6 +214,7 @@ class BinaryExpr(ASTList):
         elif op == '%':
             return left % right
         elif op == '==':
+
             return BasicEvaluator.TRUE if left==right else BasicEvaluator.FALSE
         elif op == '>':
             return BasicEvaluator.TRUE if left>right else BasicEvaluator.FALSE
@@ -221,7 +222,7 @@ class BinaryExpr(ASTList):
             return BasicEvaluator.TRUE if left<right else BasicEvaluator.FALSE
 
         else:
-            raise StoneException("bad operator ", self)
+            raise StoneException("不支持%s运算符"%op, self)
 
 
 
@@ -265,7 +266,7 @@ class IfStmnt(ASTList):
 
     def eval(self, env):
         c = self.condition().eval(env)
-        if c == BasicEvaluator.FALSE:
+        if c != BasicEvaluator.FALSE:
             return self.then_block().eval(env)
         else:
             b = self.else_block()
@@ -299,3 +300,4 @@ class WhileStmt(ASTList):
                 return result
             else:
                 result = self.body().eval(env)
+

@@ -140,7 +140,7 @@ class OrTree(Element):
     def parse(self, lexer, res):
         p = self.choose(lexer)
         if p is None:
-            raise ParseException()
+            raise ParseException("语法解析出错")
         else:
             res.append(p.parse(lexer))
 
@@ -231,7 +231,7 @@ class Leaf(Element):
                     return
 
         if len(self.tokens) > 0:
-            raise ParseException(token[0] + "exception. %s" % t)
+            raise ParseException(token[0] + "语法分析失败. " ,t)
         else:
             raise ParseException()
 
