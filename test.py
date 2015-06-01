@@ -16,7 +16,6 @@ class InterpreterTest(unittest.TestCase):
         l = ReLexer(f)
         token = l.read()
         while token != Token.EOF:
-            # print(repr(token))
             token = l.read()
 
     def test_automaton(self):

@@ -1,6 +1,6 @@
 #! -*- coding:utf-8 -*-
 from abc import ABCMeta, abstractmethod
-from astree import ASTLeaf, ASTList, ASTree
+from astree import ASTLeaf, ASTList
 from token import Token
 from exception import ParseException
 

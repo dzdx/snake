@@ -3,12 +3,12 @@ from parser import Parser, Operators
 from astree import PrimaryExpr, NumberLiteral, Name, StringLiteral, NegativeExpr, BinaryExpr, \
     BlockStmnt, IfStmnt, WhileStmt, NullStmt
 
+#from basicenv import ASTLeafEx, ASTListEx, NumberLiteralEx, StringLiteralEx, NameEx, NegativeExprEx, \
+#    BinaryExprEx, BlockStmntEx, IfStmntEx, WhileStmtEx
+
 
 class BasicParser(object):
-
-
     def __init__(self):
-
         self.reserved = set()
 
         self.operators = Operators()
